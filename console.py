@@ -112,6 +112,7 @@ class HBNBCommand(cmd.Cmd):
     def emptyline(self):
         """ Overrides the emptyline method of CMD """
         pass
+
 # Update the def do_create(self, args) method to allow for
 # object creation with given parameters
 
@@ -120,59 +121,79 @@ class HBNBCommand(cmd.Cmd):
         if not args:
             print("** class name missing **")
             return
-        elif args not in HBNBCommand.classes:
-            print("** class doesn't exist **")
-            return
-        # Split the arguments into class name and parameters
+
         args_list = args.split()
         class_name = args_list[0]
-        params = args_list[1:]
-        # Create a dictionary to store the parameters
-        kwargs = {}
-        # Iterate through the parameters
-        for param in params:
-            # Split the parameter into key and value
-            key_value = param.split('=')
-            if len(key_value) != 2:
-                continue
-            key = key_value[0]
-            value = key_value[1]
-            # Process the value based on its type
-            if value.startswith('"') and value.endswith('"'):
-                # String value
-                value = value[1:-1].replace('_', ' ')
-            elif '.' in value:
-                # Float value
-                try:
-                    value = float(value)
-                except ValueError:
-                    continue
-            else:
-                # Integer value
-                try:
-                    value = int(value)
-                except ValueError:
-                    continue
-            # Add the key-value pair to the dictionary
-            kwargs[key] = value
-        # Create a new instance of the class with the parameters
-        new_instance = HBNBCommand.classes[class_name](**kwargs)
-        storage.save()
-        print(new_instance.id)
-        storage.save()
 
-    def do_create(self, args):
-        """ Create an object of any class"""
-        if not args:
-            print("** class name missing **")
-            return
-        elif args not in HBNBCommand.classes:
+        if class_name not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[args]()
-        storage.save()
-        print(new_instance.id)
-        storage.save()
+
+    # Extract parameters
+    params = {}
+    args = ""  # Define the variable "args"
+    args_list = args.split()
+    for param in args_list[1:]:
+        # Your code here
+        if '=' not in param:
+            print(f"Skipping parameter '{param}' - Incorrect format")
+            continue
+
+        key, value = param.split('=')
+        if value.startswith('"') and value.endswith('"'):
+            # String value
+            value = value[1:-1].replace('_', ' ').replace('\\"', '"')
+        elif '.' in value:
+            # Float value
+            try:
+                value = float(value)
+            except ValueError:
+                print(f"Skipping parameter '{param}' - Not a valid float")
+                continue
+        else:
+            # Integer value
+            try:
+                value = int(value)
+            except ValueError:
+                print(f"Skipping parameter '{param}' - Not a valid integer")
+                continue
+
+        def do_create(self, args):
+            """ Create an object of any class"""
+            args_list = args.split()  # Define the variable args_list
+            class_name = args_list[0]  # Define the variable class_name
+            params = {}  # Define the variable params
+            for param in args_list[1:]:
+                if '=' not in param:
+                    print(f"Skipping parameter '{param}' - Incorrect format")
+                    continue
+
+                key, value = param.split('=')
+                if value.startswith('"') and value.endswith('"'):
+                    # String value
+                    value = value[1:-1].replace('_', ' ').replace('\\"', '"')
+                elif '.' in value:
+                    # Float value
+                    try:
+                        value = float(value)
+                    except ValueError:
+                        print(f"Skipping parameter '{param}' - Not a valid float")
+                        continue
+                else:
+                    # Integer value
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        print(f"Skipping parameter '{param}' - Not a valid integer")
+                        continue
+
+                params[key] = value
+
+            # Create a new instance of the class with the parameters
+            new_instance = HBNBCommand.classes[class_name](**params)
+            storage.save()
+            print(new_instance.id)
+            storage.save()
 
     def help_create(self):
         """ Help information for the create method """
